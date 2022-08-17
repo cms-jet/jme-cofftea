@@ -190,7 +190,7 @@ class vbfhinvProcessor(processor.ProcessorABC):
         # Already pre-filtered!
         # All leptons are at least loose
         # Check out setup_candidates for filtering details
-        met_pt, met_phi, ak4, bjets, muons, electrons, taus, photons, jet_images = setup_candidates(df, cfg)
+        met_pt, met_phi, ak4, bjets, muons, electrons, taus, photons, jet_images, jet_images_Et = setup_candidates(df, cfg)
 
         # Remove jets in accordance with the noise recipe
         if not cfg.RUN.ULEGACYV8 and df['year'] == 2017:
@@ -310,25 +310,26 @@ class vbfhinvProcessor(processor.ProcessorABC):
         df['detajj'] = np.abs(diak4.i0.eta - diak4.i1.eta).max()
 
         # Features from the dijet pair with highest invariant mass (to be used by the DNN)
-        diak4_all = ak4.distincts()
-        highest_mass_diak4 = diak4_all[diak4_all.mass.argmax()]
-        df["mjj_maxmjj"] = highest_mass_diak4.mass.max()
-        df["dphijj_maxmjj"] = dphi(highest_mass_diak4.i0.phi.min(), highest_mass_diak4.i1.phi.max())
-        df["detajj_maxmjj"] = (highest_mass_diak4.i0.eta.min() - highest_mass_diak4.i1.eta.max())
+        if cfg.NN_MODELS.DEEPNET.SAVE_FEATURES:
+            diak4_all = ak4.distincts()
+            highest_mass_diak4 = diak4_all[diak4_all.mass.argmax()]
+            df["mjj_maxmjj"] = highest_mass_diak4.mass.max()
+            df["dphijj_maxmjj"] = dphi(highest_mass_diak4.i0.phi.min(), highest_mass_diak4.i1.phi.max())
+            df["detajj_maxmjj"] = (highest_mass_diak4.i0.eta.min() - highest_mass_diak4.i1.eta.max())
         
-        df["ak4_pt0"] = diak4.i0.pt.max()
-        df["ak4_eta0"] = diak4.i0.eta.max()
-        df["ak4_pt1"] = diak4.i1.pt.max()
-        df["ak4_eta1"] = diak4.i1.eta.max()
+            df["ak4_pt0"] = diak4.i0.pt.max()
+            df["ak4_eta0"] = diak4.i0.eta.max()
+            df["ak4_pt1"] = diak4.i1.pt.max()
+            df["ak4_eta1"] = diak4.i1.eta.max()
 
-        df["ak4_pt0_maxmjj"] = highest_mass_diak4.i0.pt.max()
-        df["ak4_eta0_maxmjj"] = highest_mass_diak4.i0.eta.max()
-        df["ak4_pt1_maxmjj"] = highest_mass_diak4.i1.pt.max()
-        df["ak4_eta1_maxmjj"] = highest_mass_diak4.i1.eta.max()
-
-        df['ak4_mt0'] = mt(diak4.i0.pt, diak4.i0.phi, met_pt, met_phi).max()
-        df['ak4_mt1'] = mt(diak4.i1.pt, diak4.i1.phi, met_pt, met_phi).max()
-
+            df["ak4_pt0_maxmjj"] = highest_mass_diak4.i0.pt.max()
+            df["ak4_eta0_maxmjj"] = highest_mass_diak4.i0.eta.max()
+            df["ak4_pt1_maxmjj"] = highest_mass_diak4.i1.pt.max()
+            df["ak4_eta1_maxmjj"] = highest_mass_diak4.i1.eta.max()
+    
+            df['ak4_mt0'] = mt(diak4.i0.pt, diak4.i0.phi, met_pt, met_phi).max()
+            df['ak4_mt1'] = mt(diak4.i1.pt, diak4.i1.phi, met_pt, met_phi).max()
+    
         df['dphi_ak40_met'] = dphi(diak4.i0.phi.min(), met_phi)
         df['dphi_ak41_met'] = dphi(diak4.i1.phi.min(), met_phi)
 
@@ -777,6 +778,13 @@ class vbfhinvProcessor(processor.ProcessorABC):
                         output['tree_float16'][region]["cnn_score"]         +=  processor.column_accumulator(np.float16(df["cnn_score"][:, 1][mask]))                    
                     if 'dnn_score' in cfg.NN_MODELS.RUN:
                         output['tree_float16'][region]["dnn_score"]         +=  processor.column_accumulator(np.float16(df["dnn_score"][:, 1][mask]))
+
+                    if cfg.RUN.SAVE.JET_IMAGES:
+                        output['tree_ndarray'][region]["JetImage_E"]  += processor.column_accumulator(np.array(jet_images[mask]))
+                        output['tree_ndarray'][region]["JetImage_Et"] += processor.column_accumulator(np.array(jet_images_Et[mask]))
+
+                        output['tree_float16'][region]["JetImage_nEtaBins"] += processor.column_accumulator(np.float16(df['JetImageSize_nEtaBins'][mask]))
+                        output['tree_float16'][region]["JetImage_nPhiBins"] += processor.column_accumulator(np.float16(df['JetImageSize_nPhiBins'][mask]))
 
                     output['tree_float16'][region]["htmiss"]            +=  processor.column_accumulator(np.float16(df['htmiss'][mask]))
                     output['tree_float16'][region]["ht"]                +=  processor.column_accumulator(np.float16(df['ht'][mask]))
