@@ -28,7 +28,8 @@ def empty_column_accumulator_float16():
     return processor.column_accumulator(np.array([],dtype=np.float16))
 def empty_column_accumulator_bool():
     return processor.column_accumulator(np.array([],dtype=np.bool))
-
+def empty_column_accumulator_ndarray_uint8():
+    return processor.column_accumulator(np.ndarray(shape=(0,), dtype=np.uint8))
 
 def accu_int():
     return processor.defaultdict_accumulator(int)
@@ -43,6 +44,8 @@ def defaultdict_accumulator_of_empty_column_accumulator_float16():
     return processor.defaultdict_accumulator(empty_column_accumulator_float16)
 def defaultdict_accumulator_of_empty_column_accumulator_bool():
     return processor.defaultdict_accumulator(empty_column_accumulator_bool)
+def defaultdict_accumulator_of_empty_column_accumulator_ndarray_uint8():
+    return processor.defaultdict_accumulator(empty_column_accumulator_ndarray_uint8)
 
 def monojet_accumulator(cfg):
     dataset_ax = Cat("dataset", "Primary dataset")
@@ -498,8 +501,9 @@ def setup_candidates(df, cfg):
 
     # Jet images
     jet_images = JaggedArray.fromcounts(df['nJetImage'], df['JetImage_energies'])
-
-    return met_pt, met_phi, ak4, bjets, muons, electrons, taus, photons, jet_images
+    jet_images_Et = JaggedArray.fromcounts(df['nJetImage'], df['JetImage_transverseEnergies'])
+    
+    return met_pt, met_phi, ak4, bjets, muons, electrons, taus, photons, jet_images, jet_images_Et
 
 def monojet_regions(cfg):
     common_cuts = [

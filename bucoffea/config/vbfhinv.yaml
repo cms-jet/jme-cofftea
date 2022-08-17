@@ -146,7 +146,7 @@ default:
       path: models/model_2022-05-20_batch100_dropout0_25_regular
     deepnet:
       path: models/pytorch/2022-06-30_dense
-      save_features: true
+      save_features: false
       features_dir: data/dnn/feature_props
       features:
         - mjj
@@ -276,9 +276,9 @@ default:
       endcap: False
     save:
       passing: False
-      tree: False
+      tree: True 
+      jet_images: True
       tree_regions:
-        - sr_vbf
         - sr_vbf_no_veto_all
     kinematics:
       save: False

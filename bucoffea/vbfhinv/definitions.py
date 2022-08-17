@@ -14,7 +14,7 @@ from bucoffea.helpers import object_overlap, sigmoid3, dphi
 from bucoffea.helpers.dataset import extract_year
 from bucoffea.helpers.paths import bucoffea_path
 from bucoffea.helpers.gen import find_first_parent
-from bucoffea.monojet.definitions import accu_int, defaultdict_accumulator_of_empty_column_accumulator_float16, defaultdict_accumulator_of_empty_column_accumulator_int64,defaultdict_accumulator_of_empty_column_accumulator_bool
+from bucoffea.monojet.definitions import accu_int, defaultdict_accumulator_of_empty_column_accumulator_float16, defaultdict_accumulator_of_empty_column_accumulator_int64,defaultdict_accumulator_of_empty_column_accumulator_bool, defaultdict_accumulator_of_empty_column_accumulator_ndarray_uint8
 from pprint import pprint
 
 def vbfhinv_accumulator(cfg):
@@ -305,6 +305,7 @@ def vbfhinv_accumulator(cfg):
     items['tree_float16'] = processor.defaultdict_accumulator(defaultdict_accumulator_of_empty_column_accumulator_float16)
     items['tree_int64'] = processor.defaultdict_accumulator(defaultdict_accumulator_of_empty_column_accumulator_int64)
     items['tree_bool'] = processor.defaultdict_accumulator(defaultdict_accumulator_of_empty_column_accumulator_bool)
+    items['tree_ndarray'] = processor.defaultdict_accumulator(defaultdict_accumulator_of_empty_column_accumulator_ndarray_uint8)
     return  processor.dict_accumulator(items)
 
 def vbfhinv_regions(cfg):
