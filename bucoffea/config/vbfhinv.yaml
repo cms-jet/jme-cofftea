@@ -276,8 +276,8 @@ default:
       endcap: False
     save:
       passing: False
-      tree: True 
-      jet_images: True
+      tree: False
+      jet_images: False
       tree_regions:
         - sr_vbf_no_veto_all
     kinematics:
