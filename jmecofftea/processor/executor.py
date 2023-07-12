@@ -45,7 +45,7 @@ if not hasattr(uproot.source.xrootd.XRootDSource, '_read_real'):
     uproot.source.xrootd.XRootDSource._read = _read
 
 def _work_function_nanoaod(item, processor_instance, flatten=False, savemetrics=False,
-                   mmap=False, nano=False, cachestrategy=None, skipbadfiles=False,
+                   mmap=False, jmenano=False, cachestrategy=None, skipbadfiles=False,
                    retries=0, xrootdtimeout=None):
     if processor_instance == 'heavy':
         item, processor_instance = item
@@ -68,36 +68,20 @@ def _work_function_nanoaod(item, processor_instance, flatten=False, savemetrics=
             from uproot.source.xrootd import XRootDSource
             xrootdsource = XRootDSource.defaults
             xrootdsource['timeout'] = xrootdtimeout
+            
+            # Read the input file via uproot3. Convert the content into a LazyDataFrame.
             file = uproot.open(item.filename, localsource=localsource, xrootdsource=xrootdsource)
-            if nano:
-                pass
-                # cache = None
-                # if cachestrategy == 'dask-worker':
-                #     from distributed import get_worker
-                #     from .dask import ColumnCache
-                #     worker = get_worker()
-                #     try:
-                #         cache = worker.plugins[ColumnCache.name]
-                #     except KeyError:
-                #         # emit warning if not found?
-                #         pass
-                # df = NanoEvents.from_file(
-                #     file=file,
-                #     treename=item.treename,
-                #     entrystart=item.entrystart,
-                #     entrystop=item.entrystop,
-                #     metadata={
-                #         'dataset': item.dataset,
-                #         'filename': item.filename
-                #     },
-                #     cache=cache,
-                # )
-            else:
-                tree = file[item.treename]
-                df = LazyDataFrame(tree, item.entrystart, item.entrystop, flatten=flatten)
-                # For NanoAOD, we have to look at the "Runs" TTree for info such as weight sums
-                # The different cases in the loop represent the different formats and accordingly
-                # different ways of dealing with the provided values.
+            tree = file[item.treename]
+            df = LazyDataFrame(tree, item.entrystart, item.entrystop, flatten=flatten)
+            
+            df['dataset'] = item.dataset
+            df['filename'] = item.filename
+
+            # For NanoAOD, we have to look at the "Runs" TTree for info such as weight sums
+            # The different cases in the loop represent the different formats and accordingly
+            # different ways of dealing with the provided values.
+            # NOTE: We do not look for "Runs" TTree in JME-custom NTuples (i.e., jmenano=True) 
+            if not jmenano:
                 for name in map(lambda x: x.decode('utf-8'), file['Runs'].keys()):
                     if name.startswith('n'):
                         arr = file['Runs'][name].array()
@@ -120,9 +104,6 @@ def _work_function_nanoaod(item, processor_instance, flatten=False, savemetrics=
                         # df[name] = int(item.entrystart==0) * tmp
                         pass
 
-                ### END NANOAOD
-                df['dataset'] = item.dataset
-                df['filename'] = item.filename
             tic = time.time()
             out = processor_instance.process(df)
             toc = time.time()
@@ -302,7 +283,7 @@ def run_uproot_job_nanoaod(fileset,
     savemetrics = executor_args.pop('savemetrics', False)
     flatten = executor_args.pop('flatten', False)
     mmap = executor_args.pop('mmap', False)
-    nano = executor_args.pop('nano', False)
+    jmenano = executor_args.pop('jmenano', False)
     cachestrategy = executor_args.pop('cachestrategy', None)
     pi_compression = executor_args.pop('processor_compression', 1)
     if pi_compression is None:
@@ -314,7 +295,7 @@ def run_uproot_job_nanoaod(fileset,
         flatten=flatten,
         savemetrics=savemetrics,
         mmap=mmap,
-        nano=nano,
+        jmenano=jmenano,
         cachestrategy=cachestrategy,
         skipbadfiles=skipbadfiles,
         retries=retries,

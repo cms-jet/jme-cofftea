@@ -28,6 +28,9 @@ def choose_processor(args):
     if args.processor == 'hlt':
         from jmecofftea.hlt.hltProcessor import hltProcessor
         return hltProcessor
+    elif args.processor == 'jmenano':
+        from jmecofftea.jmenano.jmeNanoProcessor import jmeNanoProcessor
+        return jmeNanoProcessor
     else:
         raise ValueError(f"Unknown value given for the processor: {args.processor}")
 
@@ -42,12 +45,19 @@ def do_run(args):
     ndatasets = len(fileset)
     nfiles = sum([len(x) for x in fileset.values()])
     print(f"Running over {ndatasets} datasets with a total of {nfiles} files.")
+
+    executor_args = {
+        "workers" : args.jobs,
+        "flatten" : args.processor != "jmenano",
+        "jmenano" : args.processor == "jmenano"
+    }
+
     for dataset, files in fileset.items():
         output = run_uproot_job_nanoaod({dataset:files},
                                     treename=args.tree,
                                     processor_instance=choose_processor(args)(),
                                     executor=processor.futures_executor,
-                                    executor_args={'workers': args.jobs, 'flatten': True},
+                                    executor_args=executor_args,
                                     chunksize=200000,
                                     )
 
@@ -69,12 +79,18 @@ def do_worker(args):
     ndatasets = len(fileset)
     nfiles = sum([len(x) for x in fileset.values()])
     print(f"Running over {ndatasets} datasets with a total of {nfiles} files.")
+    
+    executor_args = {
+        "workers" : args.jobs,
+        "flatten" : args.processor != "jmenano",
+        "jmenano" : args.processor == "jmenano"
+    }
 
     output = run_uproot_job_nanoaod(fileset,
                                   treename=args.tree,
                                   processor_instance=choose_processor(args)(),
                                   executor=processor.futures_executor,
-                                  executor_args={'workers': args.jobs, 'flatten': True},
+                                  executor_args=executor_args,
                                   chunksize=100000,
                                  )
 
@@ -286,11 +302,18 @@ def do_submit(args):
 
 def main():
     parser = argparse.ArgumentParser(prog='Execution wrapper for coffea analysis')
-    parser.add_argument('processor', type=str, help='Processor to run.', choices=['hlt'])
+    parser.add_argument('processor', type=str, help='Processor to run.', choices=['hlt', 'jmenano'])
     parser.add_argument('--outpath', type=str, help='Path to save output under.')
     parser.add_argument('--jobs','-j', type=int, default=1, help='Number of cores to use / request.')
     parser.add_argument('--datasrc', type=str, default='das', help='Source of data files.', choices=['eos','das','ac'])
-    parser.add_argument('--tree',type=str, default='Events', help='Name of the TTree in the input files.')
+
+    # Name of the tree to look for events in the input files. Decide this based on the type of processor.
+    if args.processor == "hlt":
+        args.tree = "Events"
+    elif args.processor == "jmenano":
+        args.tree = "JMETriggerNTuple/Events"
+    else:
+        raise ValueError(f"Invalid processor name given: {args.processor}")
 
     subparsers = parser.add_subparsers(help='sub-command help')
 

@@ -20,14 +20,8 @@ def main():
     # Define the mapping between dataset name and the corresponding list of files we want to run on.
     # 
     fileset = {
-        "Muon0_2023B" : [
-            "root://cmsxrootd.fnal.gov//store/data/Run2023B/Muon0/NANOAOD/PromptNanoAODv11p9_v1-v2/2810000/1074b310-64e3-4ad4-90f0-443a3c80ad37.root"
-        ],
-        "Muon0_2023C" : [
-            "root://cmsxrootd.fnal.gov//store/data/Run2023C/Muon0/NANOAOD/PromptNanoAODv11p9_v1-v1/70000/9d003698-9b74-40b5-b34c-24c33f4b8bef.root"
-        ],
-        "Muon0_2023D": [
-            "root://cmsxrootd.fnal.gov//store/data/Run2023D/Muon0/NANOAOD/PromptReco-v1/000/369/956/00000/05056be2-5638-4f7f-b504-59365c0e570d.root"
+        "Theo_Test_2023": [
+            "/afs/cern.ch/user/t/tchatzis/public/forAlp/test.root"
         ],
     }
 
@@ -37,10 +31,16 @@ def main():
     args = parse_commandline()
     processor_class = args.processor
 
-    # Currently, we only support hlt processor.
     if args.processor == 'hlt':
         from jmecofftea.hlt.hltProcessor import hltProcessor
         processorInstance = hltProcessor()
+        treename = 'Events'
+        flatten = True
+    elif args.processor == 'jmenano':
+        from jmecofftea.jmenano.jmeNanoProcessor import jmeNanoProcessor
+        processorInstance = jmeNanoProcessor()
+        treename = 'JMETriggerNTuple/Events'
+        flatten = False # For custom NTuples, flattening of JaggedArray is done at a later stage.
     else:
         raise ValueError(f"Unknown value given for the processor argument: {args.processor}")
 
@@ -52,15 +52,22 @@ def main():
             else: newlist.append(file)
         fileset[dataset] = newlist
 
+    executor_args = {
+        "workers" : 4,
+        "flatten" : flatten,
+        "jmenano" : args.processor == "jmenano", # If jmenano=True, we're processing custom NTuples.
+    }
+
     for dataset, filelist in fileset.items():
         print(f"Running on dataset: {dataset}")
         print(f"Number of files: {len(filelist)}")
         tmp = {dataset:filelist}
+
         output = run_uproot_job_nanoaod(tmp,
-                                    treename='Runs' if args.processor=='sumw' else 'Events',
+                                    treename=treename,
                                     processor_instance=processorInstance,
                                     executor=processor.futures_executor,
-                                    executor_args={'workers': 4, 'flatten': True},
+                                    executor_args=executor_args,
                                     chunksize=500000,
                                     )
         save(output, f"{processor_class}_{dataset}.coffea")
