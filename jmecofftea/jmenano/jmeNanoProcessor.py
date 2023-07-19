@@ -7,7 +7,7 @@ from dynaconf import settings as cfg
 from coffea.lumi_tools import LumiMask
 
 from jmecofftea.hlt.definitions import hlt_accumulator, hlt_regions
-from jmecofftea.jmenano.definitions import setup_candidates_for_jmenano
+from jmecofftea.jmenano.definitions import setup_candidates_for_jmenano, regions_for_jmenano
 
 from jmecofftea.helpers import jmecofftea_path, recoil, metnomu, mask_and, mask_or, object_overlap
 from jmecofftea.helpers.dataset import extract_year
@@ -87,30 +87,40 @@ class jmeNanoProcessor(processor.ProcessorABC):
         dimu_mass_cut = (dimuons.mass > 70) & (dimuons.mass < 110)
         selection.add("dimuon_mass", dimu_mass_cut.any())
 
-        selection.add("dimuon_pt", (dimuons.pt>15).any())
+        # Dimuon (Z) pt cut
+        selection.add("dimuon_pt", (dimuons.pt > 15).any())
 
         # Leading jet in barrel, back-to-back with the Z boson
         leadak4_index = ak4.pt.argmax()
         ak4_in_barrel = ak4[leadak4_index].abseta < 1.3
         selection.add("lead_ak4_in_barrel", ak4_in_barrel.any())
 
-        # Fill histograms
+        # Trigger cuts
+        selection.add("HLT_PFJet60", df["HLT_PFJet60"])
+        selection.add("HLT_PFJet60_wasrun", df["HLT_PFJet60_wasrun"])
+        selection.add("HLT_IsoMu27", df["HLT_IsoMu27"])
+
+        # Fill histograms for each region
         output = self.accumulator.identity()
 
-        regions = hlt_regions(cfg)
-	
-        cuts = [
-            "opp_sign",
-            "two_muons",
-            "central_muons",
-            "muon_pt",
-            "dimuon_mass",
-            "dimuon_pt",
-            "lead_ak4_in_barrel",
-        ]
-        
-        mask = selection.all(*cuts)
-        
+        regions = regions_for_jmenano()
+
+        for region, cuts in regions.items():
+            mask = selection.all(*cuts)
+
+            def ezfill(name, **kwargs):
+                """Helper function to make filling easier."""
+                output[name].fill(
+                    region=region, 
+                    dataset=dataset, 
+                    **kwargs
+                )
+
+            # Kinematics of the leading jet
+            ezfill("ak4_pt0",     jetpt=ak4[leadak4_index].pt[mask].flatten())
+            ezfill("ak4_eta0",    jeteta=ak4[leadak4_index].eta[mask].flatten())
+            ezfill("ak4_phi0",    jetphi=ak4[leadak4_index].phi[mask].flatten())
+
         return output
 
     def postprocess(self, accumulator):

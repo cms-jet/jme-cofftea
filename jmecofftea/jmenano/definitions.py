@@ -34,3 +34,24 @@ def setup_candidates_for_jmenano(df, cfg):
     )
 
     return ak4, muons
+
+
+def regions_for_jmenano():
+    regions_and_cuts = {}
+
+    # Common cuts for numerator and denominator regions
+    # These implement the Z(mu mu) + jet selection
+    common_cuts = [
+        "HLT_IsoMu27", 
+        "opp_sign",
+        "two_muons",
+        "central_muons",
+        "muon_pt",
+        "dimuon_mass",
+        "lead_ak4_in_barrel",
+    ]
+
+    regions_and_cuts["HLT_PFJet60_num"] = common_cuts + ["HLT_PFJet60_wasrun", "HLT_PFJet60"]
+    regions_and_cuts["HLT_PFJet60_den"] = common_cuts + ["HLT_PFJet60_wasrun"]
+
+    return regions_and_cuts
