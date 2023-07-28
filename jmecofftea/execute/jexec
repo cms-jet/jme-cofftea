@@ -289,7 +289,7 @@ def do_submit(args):
                     print(f"Submitted job {jobid}")
     if args.asynchronous:
         print('Starting asynchronous submission.')
-        p = Pool(processes=2)
+        p = Pool(processes=4)
         res = p.map_async(condor_submit, jdl_to_submit)
         res.wait()
         if res.successful():
@@ -303,15 +303,7 @@ def main():
     parser.add_argument('processor', type=str, help='Processor to run.', choices=['hlt', 'jmenano'])
     parser.add_argument('--outpath', type=str, help='Path to save output under.')
     parser.add_argument('--jobs','-j', type=int, default=1, help='Number of cores to use / request.')
-    parser.add_argument('--datasrc', type=str, default='das', help='Source of data files.', choices=['eos','das','ac'])
-
-    # Name of the tree to look for events in the input files. Decide this based on the type of processor.
-    if args.processor == "hlt":
-        args.tree = "Events"
-    elif args.processor == "jmenano":
-        args.tree = "JMETriggerNTuple/Events"
-    else:
-        raise ValueError(f"Invalid processor name given: {args.processor}")
+    parser.add_argument('--datasrc', type=str, default='eos', help='Source of data files.', choices=['eos','das','ac'])
 
     subparsers = parser.add_subparsers(help='sub-command help')
 
@@ -347,6 +339,14 @@ def main():
     args = parser.parse_args()
     if getattr(args, 'async', False):
         raise IOError('The --async option is deprecated. Use --asynchronous instead.')
+
+    # Name of the tree to look for events in the input files. Decide this based on the type of processor.
+    if args.processor == "hlt":
+        args.tree = "Events"
+    elif args.processor == "jmenano":
+        args.tree = "JMETriggerNTuple/Events"
+    else:
+        raise ValueError(f"Invalid processor name given: {args.processor}")
 
     host = socket.gethostname()
     if 'lpc' in host:
