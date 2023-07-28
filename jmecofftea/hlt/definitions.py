@@ -33,6 +33,8 @@ def hlt_accumulator():
     frac_ax = Bin('frac','Fraction', 50, 0, 1)
     nvtx_ax = Bin('nvtx','Number of vertices',100,-0.5,99.5)
 
+    z_pt_ax = Bin("pt", r"$p_{T}^{Z}$ (GeV)", 50, 0, 1000)
+
     # Histogram definitions
     items = {}
     items["ak4_pt0"] = Hist("Counts", dataset_ax, region_ax, jet_pt_ax)
@@ -42,6 +44,8 @@ def hlt_accumulator():
     items["recoil"] = Hist("Counts", dataset_ax, region_ax, recoil_ax)
     items["met"] = Hist("Counts", dataset_ax, region_ax, met_ax)
     items["ht"] = Hist("Counts", dataset_ax, region_ax, ht_ax)
+
+    items["z_pt"] = Hist("Counts", dataset_ax, region_ax, z_pt_ax)
 
     items["ak4_chf0"] = Hist("Counts", dataset_ax, region_ax, frac_ax)
     items["ak4_nhf0"] = Hist("Counts", dataset_ax, region_ax, frac_ax)

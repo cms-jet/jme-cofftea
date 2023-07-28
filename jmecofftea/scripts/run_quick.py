@@ -21,7 +21,7 @@ def main():
     # 
     fileset = {
         "Theo_Test_2023": [
-            "/afs/cern.ch/user/t/tchatzis/public/forAlp/test.root"
+            "/eos/user/t/tchatzis/CoffteaNTuples/muon2023C_CoffteaNTuple/data/out_1727.root"
         ],
     }
 
@@ -35,12 +35,10 @@ def main():
         from jmecofftea.hlt.hltProcessor import hltProcessor
         processorInstance = hltProcessor()
         treename = 'Events'
-        flatten = True
     elif args.processor == 'jmenano':
         from jmecofftea.jmenano.jmeNanoProcessor import jmeNanoProcessor
         processorInstance = jmeNanoProcessor()
         treename = 'JMETriggerNTuple/Events'
-        flatten = False # For custom NTuples, flattening of JaggedArray is done at a later stage.
     else:
         raise ValueError(f"Unknown value given for the processor argument: {args.processor}")
 
@@ -54,7 +52,6 @@ def main():
 
     executor_args = {
         "workers" : 4,
-        "flatten" : flatten,
         "jmenano" : args.processor == "jmenano", # If jmenano=True, we're processing custom NTuples.
     }
 

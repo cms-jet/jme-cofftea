@@ -12,25 +12,24 @@ def setup_candidates_for_jmenano(df, cfg):
     from the given dataframe.
     """
     ak4 = JaggedCandidateArray.candidatesfromcounts(
-        df["hltAK4PFJetsCorrected_pt"].counts,
-        pt=df["hltAK4PFJetsCorrected_pt"].flatten(),
-        eta=df["hltAK4PFJetsCorrected_eta"].flatten(),
-        abseta=np.abs(df["hltAK4PFJetsCorrected_eta"].flatten()),
-        phi=df["hltAK4PFJetsCorrected_phi"].flatten(),
-        mass=df["hltAK4PFJetsCorrected_mass"].flatten(),
+        df["offlineAK4PFPuppiJetsCorrected_multiplicity"],
+        pt=df["offlineAK4PFPuppiJetsCorrected_pt"],
+        eta=df["offlineAK4PFPuppiJetsCorrected_eta"],
+        abseta=np.abs(df["offlineAK4PFPuppiJetsCorrected_eta"]),
+        phi=df["offlineAK4PFPuppiJetsCorrected_phi"],
+        mass=df["offlineAK4PFPuppiJetsCorrected_mass"],
     )
 
     muons = JaggedCandidateArray.candidatesfromcounts(
-        df["offlineMuons_pt"].counts,
-        pt=df["offlineMuons_pt"].flatten(),
-        eta=df["offlineMuons_eta"].flatten(),
-        abseta=np.abs(df["offlineMuons_eta"].flatten()),
-        phi=df["offlineMuons_phi"].flatten(),
-        mass=df["offlineMuons_mass"].flatten(),
-        pdgId=df["offlineMuons_pdgId"].flatten(),
-        vx=df["offlineMuons_vx"].flatten(),
-        vy=df["offlineMuons_vy"].flatten(),
-        vz=df["offlineMuons_vz"].flatten(),
+        df["offlineMuons_multiplicity"],
+        pt=df["offlineMuons_pt"],
+        eta=df["offlineMuons_eta"],
+        abseta=np.abs(df["offlineMuons_eta"]),
+        phi=df["offlineMuons_phi"],
+        mass=df["offlineMuons_pt"] * 0.,
+        pdgId=df["offlineMuons_pdgId"],
+        dxy=df["offlineMuons_dxyPV"],
+        dz=df["offlineMuons_dzPV"],
     )
 
     return ak4, muons
@@ -43,6 +42,7 @@ def regions_for_jmenano():
     # These implement the Z(mu mu) + jet selection
     common_cuts = [
         "HLT_IsoMu27", 
+        "HLT_IsoMu27_wasrun", 
         "opp_sign",
         "two_muons",
         "central_muons",
@@ -51,7 +51,18 @@ def regions_for_jmenano():
         "lead_ak4_in_barrel",
     ]
 
-    regions_and_cuts["HLT_PFJet60_num"] = common_cuts + ["HLT_PFJet60_wasrun", "HLT_PFJet60"]
-    regions_and_cuts["HLT_PFJet60_den"] = common_cuts + ["HLT_PFJet60_wasrun"]
+    # Triggers of interest
+    triggers = [
+        "HLT_PFJet60",
+        "HLT_PFJet140",
+        "HLT_PFJet320",
+        "HLT_PFJetFwd60",
+        "HLT_PFJetFwd140",
+        "HLT_PFJetFwd320",
+    ]
+
+    for trigger in triggers:
+        regions_and_cuts[f"{trigger}_num"] = common_cuts + [f"{trigger}_wasrun", f"{trigger}_accepted"]
+        regions_and_cuts[f"{trigger}_den"] = common_cuts + [f"{trigger}_wasrun"]
 
     return regions_and_cuts

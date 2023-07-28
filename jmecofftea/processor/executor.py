@@ -281,7 +281,7 @@ def run_uproot_job_nanoaod(fileset,
 
     # pop all _work_function args here
     savemetrics = executor_args.pop('savemetrics', False)
-    flatten = executor_args.pop('flatten', False)
+    flatten = executor_args.pop('flatten', True)
     mmap = executor_args.pop('mmap', False)
     jmenano = executor_args.pop('jmenano', False)
     cachestrategy = executor_args.pop('cachestrategy', None)

@@ -48,7 +48,6 @@ def do_run(args):
 
     executor_args = {
         "workers" : args.jobs,
-        "flatten" : args.processor != "jmenano",
         "jmenano" : args.processor == "jmenano"
     }
 
@@ -82,7 +81,6 @@ def do_worker(args):
     
     executor_args = {
         "workers" : args.jobs,
-        "flatten" : args.processor != "jmenano",
         "jmenano" : args.processor == "jmenano"
     }
 
