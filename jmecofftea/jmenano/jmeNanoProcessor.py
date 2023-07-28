@@ -28,7 +28,12 @@ class jmeNanoProcessor(processor.ProcessorABC):
 
         if df:
             dataset = df['dataset']
-            self._year = extract_year(dataset)
+            # Try to determine dataset year from dataset name.
+            # If we can't, assign a -1. 
+            try:
+                self._year = extract_year(dataset)
+            except RuntimeError:
+                self._year = -1
             df["year"] = self._year
             
             # Use the default config for now

@@ -137,7 +137,7 @@ def find_files(directory, regex):
         files = list(filter(lambda x: x.endswith('.root'), files))
         if not len(files):
             continue
-        dataset = path.split('/')[-3]
+        dataset = path.split('/')[-2]
         if not re.match(regex, dataset):
             continue
         files = [pjoin(path,x) for x in files]

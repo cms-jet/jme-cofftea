@@ -20,7 +20,7 @@ def main():
     # Define the mapping between dataset name and the corresponding list of files we want to run on.
     # 
     fileset = {
-        "Theo_Test_2023": [
+        "muon2023C_CoffteaNTuple": [
             "/eos/user/t/tchatzis/CoffteaNTuples/muon2023C_CoffteaNTuple/data/out_1727.root"
         ],
     }
