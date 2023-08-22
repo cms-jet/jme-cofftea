@@ -15,7 +15,11 @@ def regionsForCustomNanoProcessor(triggers):
 
     # Create numerator and denominator regions for each trigger of interest
     for trigger in triggers:
-        regions[f"{trigger}_num"] = common_cuts + [f"{trigger}_HLTPathNotPrescaled", f"{trigger}_HLTPathAccept"]
-        regions[f"{trigger}_den"] = common_cuts + [f"{trigger}_HLTPathNotPrescaled"]
+        
+        # Cuts both in num and denom to ensure that the path was not prescaled by either L1 algo or HLT.
+        prescale_cuts = [f"{trigger}_HLTPathNotPrescaled", f"{trigger}_L1TSeedNotPrescaled"]
+
+        regions[f"{trigger}_num"] = common_cuts + prescale_cuts + [f"{trigger}_HLTPathAccept"]
+        regions[f"{trigger}_den"] = common_cuts + prescale_cuts 
 
     return regions

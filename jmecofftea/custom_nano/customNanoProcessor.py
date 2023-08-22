@@ -64,15 +64,23 @@ class customNanoProcessor(processor.ProcessorABC):
 
         # Triggers of interest
         triggers = [
+            # Single jet paths
             "HLT_PFJet60",
             "HLT_PFJet80",
             "HLT_PFJet140",
             "HLT_PFJet320",
             "HLT_PFJet500",
+            # Forward single jet paths
             "HLT_PFJetFwd60",
             "HLT_PFJetFwd80",
             "HLT_PFJetFwd140",
             "HLT_PFJetFwd320",
+            # HT paths
+            "HLT_PFHT180",
+            "HLT_PFHT350",
+            "HLT_PFHT510",
+            "HLT_PFHT780",
+            "HLT_PFHT1050",
         ]
 
         for trigger in triggers:
@@ -81,6 +89,9 @@ class customNanoProcessor(processor.ProcessorABC):
 
             # The given path was run (not prescaled)
             selection.add(f"{trigger}_HLTPathNotPrescaled", ~df[f"{trigger}_HLTPathPrescaled"])
+
+            # The underlying L1 seed was run (not prescaled)
+            selection.add(f"{trigger}_L1TSeedNotPrescaled", ~df[f"{trigger}_L1TSeedPrescaledOrMasked"])
 
         output = self.accumulator.identity()
 
