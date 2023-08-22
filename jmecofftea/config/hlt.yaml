@@ -17,40 +17,6 @@ default:
         pt : 10
         eta : 2.4
         iso : 0.25
-  electron:
-    cuts:
-      tight:
-        pt : 40
-        eta : 2.5
-      loose:
-        pt : 10
-        eta : 2.5
-        dxy: # https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedElectronIdentificationRun2
-          barrel: 0.05
-          endcap: 0.10
-        dz: # https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedElectronIdentificationRun2
-          barrel: 0.10
-          endcap: 0.20
-    branch:
-      id: Electron_cutBased
-  photon:
-    cuts:
-      loose:
-        pt: 15
-        eta: 2.5
-      tight:
-        pt: 230
-        pttrig: 230
-    branch: # No eta cut here bc we use "isScEtaEB"
-      id: Photon_cutBasedBitmap
-      idv7: Photon_cutBased
-  tau:
-    cuts:
-      pt: 20
-      eta: 2.3
-    branch:
-      id: Tau_idDecayModeNewDMs
-      iso: Tau_idDeepTau2017v2p1VSjet
   recoil:
     pt: 250       # Min recoil pt
   dpfcalo: 0.5    # Minimum Delta(PFMET,CaloMET)  
