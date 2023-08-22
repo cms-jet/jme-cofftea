@@ -20,8 +20,8 @@ def main():
     # Define the mapping between dataset name and the corresponding list of files we want to run on.
     # 
     fileset = {
-        "muon2023C_CoffteaNTuple": [
-            "/eos/user/t/tchatzis/CoffteaNTuples/muon2023C_CoffteaNTuple/data/out_1727.root"
+        "Muon0_2023C" : [
+            "/eos/user/t/tchatzis/CoffteaNTuples/Muon0_Run2023Cv4/Muon0/crab_Muon0_Run2023Cv4/230731_185333/0000/out_101.root"
         ],
     }
 
@@ -39,6 +39,10 @@ def main():
         from jmecofftea.jmenano.jmeNanoProcessor import jmeNanoProcessor
         processorInstance = jmeNanoProcessor()
         treename = 'JMETriggerNTuple/Events'
+    elif args.processor == 'customnano':
+        from jmecofftea.custom_nano.customNanoProcessor import customNanoProcessor
+        processorInstance = customNanoProcessor()
+        treename = 'JMETriggerNTuple/Events'
     else:
         raise ValueError(f"Unknown value given for the processor argument: {args.processor}")
 
@@ -52,7 +56,7 @@ def main():
 
     executor_args = {
         "workers" : 4,
-        "jmenano" : args.processor == "jmenano", # If jmenano=True, we're processing custom NTuples.
+        "jmenano" : args.processor in ["jmenano", "customnano"], # If jmenano=True, we're processing custom NTuples.
     }
 
     for dataset, filelist in fileset.items():

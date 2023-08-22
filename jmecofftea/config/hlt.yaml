@@ -80,6 +80,7 @@ default:
   lumi_masks:
     2018: data/json/Cert_314472-325175_13TeV_17SeptEarlyReReco2018ABC_PromptEraD_Collisions18_JSON.txt
     2022: data/json/Cert_Collisions2022_355100_362760_Golden.json
+    2023: data/json/Cert_Collisions2023_366442_370790_Golden.json
 
   # MET filters on data and MC
   filters:

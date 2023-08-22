@@ -31,6 +31,9 @@ def choose_processor(args):
     elif args.processor == 'jmenano':
         from jmecofftea.jmenano.jmeNanoProcessor import jmeNanoProcessor
         return jmeNanoProcessor
+    elif args.processor == 'customnano':
+        from jmecofftea.custom_nano.customNanoProcessor import customNanoProcessor
+        return customNanoProcessor
     else:
         raise ValueError(f"Unknown value given for the processor: {args.processor}")
 
@@ -48,7 +51,7 @@ def do_run(args):
 
     executor_args = {
         "workers" : args.jobs,
-        "jmenano" : args.processor == "jmenano"
+        "jmenano" : args.processor in ["jmenano", "customnano"]
     }
 
     for dataset, files in fileset.items():
@@ -81,7 +84,7 @@ def do_worker(args):
     
     executor_args = {
         "workers" : args.jobs,
-        "jmenano" : args.processor == "jmenano"
+        "jmenano" : args.processor in ["jmenano", "customnano"]
     }
 
     output = run_uproot_job_nanoaod(fileset,
@@ -300,7 +303,7 @@ def do_submit(args):
 
 def main():
     parser = argparse.ArgumentParser(prog='Execution wrapper for coffea analysis')
-    parser.add_argument('processor', type=str, help='Processor to run.', choices=['hlt', 'jmenano'])
+    parser.add_argument('processor', type=str, help='Processor to run.', choices=['hlt', 'jmenano', 'customnano'])
     parser.add_argument('--outpath', type=str, help='Path to save output under.')
     parser.add_argument('--jobs','-j', type=int, default=1, help='Number of cores to use / request.')
     parser.add_argument('--datasrc', type=str, default='eos', help='Source of data files.', choices=['eos','das','ac'])
@@ -345,6 +348,8 @@ def main():
     if args.processor == "hlt":
         args.tree = "Events"
     elif args.processor == "jmenano":
+        args.tree = "JMETriggerNTuple/Events"
+    elif args.processor == "customnano":
         args.tree = "JMETriggerNTuple/Events"
     else:
         raise ValueError(f"Invalid processor name given: {args.processor}")
