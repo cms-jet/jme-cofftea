@@ -21,14 +21,14 @@ def hlt_accumulator():
     region_ax = Cat("region", "Selection region")
 
     # Numerical axes
-    jet_pt_ax = Bin("jetpt", r"Jet $p_{T}$ (GeV)", 50, 0, 1000)
+    jet_pt_ax = Bin("jetpt", r"Jet $p_{T}$ (GeV)", 200, 0, 1000)
     jet_eta_ax = Bin("jeteta", r"Jet $\eta$", 50, -5, 5)
     jet_abseta_ax = Bin("jeteta", r"Jet $\eta$", 50, 0, 5)
     jet_phi_ax = Bin("jetphi", "Jet $\phi$", 50, -3.14, 3.14)
     dimu_mass_ax = Bin("dimumass", "Dimuon Mass (GeV)", 50, 60, 120) 
     recoil_ax = Bin("recoil", "Recoil (GeV)", 50, 0, 1000)
     met_ax = Bin("met", "MET (GeV)", 50, 0, 1000)
-    ht_ax = Bin("ht", r"$H_{T}$ (GeV)", 200, 0, 4000)
+    ht_ax = Bin("ht", r"$H_{T}$ (GeV)", 400, 0, 4000)
     
     frac_ax = Bin('frac','Fraction', 50, 0, 1)
     nvtx_ax = Bin('nvtx','Number of vertices',100,-0.5,99.5)
