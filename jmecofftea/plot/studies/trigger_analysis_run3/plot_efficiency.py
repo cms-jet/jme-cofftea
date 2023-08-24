@@ -1,5 +1,27 @@
 #!/usr/bin/env python3
 
+"""
+Python3 script to plot efficiency curves for triggers. The first argument it takes is the path to the
+directory having the merged coffea files (i.e., the output of jmerge). In addition, it will take arguments
+about the trigger names, the variable name to compute efficiency as a function of and a dataset name,
+as explained further below. 
+
+Usage:
+
+> ./plot_efficiency.py /path/to/merged/coffea/files -t <trigger1> <trigger2> ... -v <variableName> -d <dataset>
+
+where:
+
+    - <trigger1> ...  : Space-separated name of triggers for which to plot efficiency.
+    - <variableName>  : Name of the variable to plot the efficiency for.
+    - <dataset>       : Name of the dataset to use, which also can be a regular expression to match multiple datasets at once.
+
+An example with Muon 2023 dataset, to plot some jet trigger efficiencies:
+
+> ./plot_efficiency.py /path/to/merged/coffea/files -t HLT_PFJet320 HLT_PFJet500 ... -v ak4_pt0 -d 'Muon.*2023.*'
+
+"""
+
 import os
 import re
 import argparse
@@ -8,7 +30,7 @@ from matplotlib import pyplot as plt
 from coffea import hist
 from klepto.archives import dir_archive
 
-from jmecofftea.plot.style import trigger_names, binnings, markers 
+from jmecofftea.plot.style import trigger_names, binnings, markers, get_xaxis_range
 
 pjoin = os.path.join
 
@@ -59,7 +81,7 @@ def plot_efficiency_for_trigger(acc, outdir, trigger, variable, dataset):
     )
 
     # Some aesthetics
-    ax.axhline(1, xmin=0, xmax=1, ls='--')
+    ax.axhline(1, xmin=0, xmax=1, ls='--', color='k')
     ax.set_ylabel("Trigger Efficiency")
 
     ax.text(1,1,trigger,
@@ -68,6 +90,11 @@ def plot_efficiency_for_trigger(acc, outdir, trigger, variable, dataset):
         va="bottom",
         transform=ax.transAxes
     )
+    
+    # x-axis range
+    xrange = get_xaxis_range(trigger)
+    if xrange:
+        ax.set_xlim(*xrange)
 
     # Save figure
     outpath = pjoin(outdir, f"{trigger}_eff_{variable}.pdf")

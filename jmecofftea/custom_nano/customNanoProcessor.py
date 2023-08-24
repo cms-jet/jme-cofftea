@@ -93,6 +93,9 @@ class customNanoProcessor(processor.ProcessorABC):
             # The underlying L1 seed was run (not prescaled)
             selection.add(f"{trigger}_L1TSeedNotPrescaled", ~df[f"{trigger}_L1TSeedPrescaledOrMasked"])
 
+            # The L1 seed passed
+            selection.add(f"{trigger}_L1TSeedAccept", df[f"{trigger}_L1TSeedAccept"])
+
         output = self.accumulator.identity()
 
         # Loop over regions for each trigger and fill histograms

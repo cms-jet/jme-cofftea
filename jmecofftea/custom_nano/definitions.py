@@ -19,7 +19,9 @@ def regionsForCustomNanoProcessor(triggers):
         # Cuts both in num and denom to ensure that the path was not prescaled by either L1 algo or HLT.
         prescale_cuts = [f"{trigger}_HLTPathNotPrescaled", f"{trigger}_L1TSeedNotPrescaled"]
 
-        regions[f"{trigger}_num"] = common_cuts + prescale_cuts + [f"{trigger}_HLTPathAccept"]
-        regions[f"{trigger}_den"] = common_cuts + prescale_cuts 
+        l1_cuts = [f"{trigger}_L1TSeedAccept"]
+
+        regions[f"{trigger}_num"] = common_cuts + prescale_cuts + l1_cuts + [f"{trigger}_HLTPathAccept"]
+        regions[f"{trigger}_den"] = common_cuts + prescale_cuts + l1_cuts 
 
     return regions

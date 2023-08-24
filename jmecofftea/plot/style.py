@@ -51,6 +51,21 @@ def trigger_labels():
         'tr_metnomu_filterhf' : '$p_{T,no-\mu}^{miss} > 120 \ GeV$ \n$H_{T,no-\mu}^{miss} > 120 \ GeV$',
     }
 
+def get_xaxis_range(trigger):
+    """Get the x-axis range to use while plotting the given trigger."""
+    name_to_range = {
+        "HLT_PFJet80" : (0,400),
+        "HLT_PFJet140" : (0,400),
+    }
+    xrange = None
+    try:
+        xrange = name_to_range[trigger]
+    except KeyError:
+        pass
+    
+    return xrange
+
+
 from collections import defaultdict
 def plot_settings():
     plot_settings = defaultdict(lambda: defaultdict(lambda : None),
