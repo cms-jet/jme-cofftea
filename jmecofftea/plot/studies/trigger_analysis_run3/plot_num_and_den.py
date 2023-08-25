@@ -5,17 +5,16 @@ Python3 script to plot numerator and denominator regions for a given trigger, on
 
 Usage:
 
-> ./plot_num_and_den.py /path/to/merged/coffea/files -t <trigger1> <trigger2> ... -v <variableName> -d <dataset>
+> ./plot_num_and_den.py /path/to/merged/coffea/files -t <triggerRegex> -d <dataset>
 
 where:
 
-    - <trigger1> ...  : Space-separated name of triggers for which to plot numerator and denominator regions.
-    - <variableName>  : Name of the variable to plot the efficiency for.
+    - <triggerRegex>  : Regular expression to match the trigger names to plot efficiency.
     - <dataset>       : Name of the dataset to use, which also can be a regular expression to match multiple datasets at once.
 
 An example with Muon 2023 dataset, to plot numerator and denominator regions for some single jet triggers as a function of pt:
 
-> ./plot_num_and_den.py /path/to/merged/coffea/files -t HLT_PFJet320 HLT_PFJet500 ... -v ak4_pt0 -d 'Muon.*2023.*'
+> ./plot_num_and_den.py /path/to/merged/coffea/files -t 'HLT_PFJet(\d+).*' -d 'Muon.*2023.*'
 
 """
 
@@ -28,7 +27,14 @@ from matplotlib import pyplot as plt
 from coffea import hist
 from klepto.archives import dir_archive
 
-from jmecofftea.plot.style import trigger_names, binnings, markers, get_xaxis_range
+from jmecofftea.plot.style import (
+    trigger_names, 
+    binnings, 
+    markers,
+    get_binning_for_trigger,
+    get_variable_for_trigger,
+    get_list_of_triggers
+)
 
 pjoin = os.path.join
 
@@ -36,47 +42,46 @@ pjoin = os.path.join
 def parse_cli():
     parser = argparse.ArgumentParser()
     parser.add_argument("inpath", help="Path to the directory with the merged coffea files.")
-    parser.add_argument("-t", "--triggers", nargs="+", help="The name of the triggers (space-separated) to plot numerator and denominator.")
-    parser.add_argument("-v", "--variable", help="The name of the variable to plot.")
+    parser.add_argument("-t", "--triggers", help="Regular expression to match the trigger names to plot numerator and denominator.")
     parser.add_argument("-d", "--dataset",  help="Regular expression for the dataset to be processed.")
 
     args = parser.parse_args()
     return args
 
 
-def plot_num_and_den(acc, outdir, triggers, dataset, variable, logy=True):
+def plot_num_and_den(acc, outdir, trigger, dataset, logy=True):
     """
-    Plot numerator and denominator regions for the given list of triggers.
+    Plot numerator and denominator regions for the given trigger.
     """
+    print(f"Plotting num/denom regions for: {trigger}")
+
+    variable = get_variable_for_trigger(trigger)
+
     acc.load(variable)
     h = acc[variable]
 
     # Get the dataset(s) we're interested in
     h = h.integrate("dataset", re.compile(dataset))
-
-    for trigger in triggers:
-        print(f"Plotting num/denom regions for: {trigger}")
     
-        # Filter the regions in the histogram
-        histo = h[re.compile(f"{trigger}.*")]
+    # Rebin the histogram
+    new_bins = get_binning_for_trigger(trigger)
+    h = h.rebin(new_bins.name, new_bins)
 
-        # Plot
-        fig, ax = plt.subplots()
-        hist.plot1d(histo, ax=ax, overlay="region")
+    # Filter the regions in the histogram
+    histo = h[re.compile(f"{trigger}.*")]
 
-        if logy:
-            ax.set_yscale("log")
-            ax.set_ylim(1e0,1e8)
+    # Plot
+    fig, ax = plt.subplots()
+    hist.plot1d(histo, ax=ax, overlay="region")
 
-        # x-axis range
-        xrange = get_xaxis_range(trigger)
-        if xrange:
-            ax.set_xlim(*xrange)
+    if logy:
+        ax.set_yscale("log")
+        ax.set_ylim(1e0,1e8)
 
-        # Save figure
-        outpath = pjoin(outdir, f"{trigger}_num_den_{variable}.pdf")
-        fig.savefig(outpath)
-        plt.close(fig)
+    # Save figure
+    outpath = pjoin(outdir, f"{trigger}_num_den_{variable}.pdf")
+    fig.savefig(outpath)
+    plt.close(fig)
 
 
 def main():
@@ -91,13 +96,16 @@ def main():
         os.makedirs(outdir)
 
     # Plot numerator and denominator regions for each trigger
-    plot_num_and_den(
-        acc,
-        outdir,
-        triggers=args.triggers,
-        variable=args.variable,
-        dataset=args.dataset
-    )
+    for trigger in get_list_of_triggers():
+        if not re.match(args.triggers, trigger):
+            continue
+        
+        plot_num_and_den(
+            acc,
+            outdir,
+            trigger=trigger,
+            dataset=args.dataset
+        )
 
 
 if __name__ == "__main__":

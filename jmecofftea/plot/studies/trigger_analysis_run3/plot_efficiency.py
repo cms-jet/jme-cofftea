@@ -8,17 +8,20 @@ as explained further below.
 
 Usage:
 
-> ./plot_efficiency.py /path/to/merged/coffea/files -t <trigger1> <trigger2> ... -v <variableName> -d <dataset>
+> ./plot_efficiency.py /path/to/merged/coffea/files -t <triggerRegex> -d <dataset>
 
 where:
 
-    - <trigger1> ...  : Space-separated name of triggers for which to plot efficiency.
-    - <variableName>  : Name of the variable to plot the efficiency for.
+    - <triggerRegex>  : Regular expression to match the trigger names to plot efficiency.
     - <dataset>       : Name of the dataset to use, which also can be a regular expression to match multiple datasets at once.
 
 An example with Muon 2023 dataset, to plot some jet trigger efficiencies:
 
-> ./plot_efficiency.py /path/to/merged/coffea/files -t HLT_PFJet320 HLT_PFJet500 ... -v ak4_pt0 -d 'Muon.*2023.*'
+> ./plot_efficiency.py /path/to/merged/coffea/files -t 'HLT_PFJet(\d+).*' -d 'Muon.*2023.*'
+
+Plot efficiency for a single trigger using the Muon dataset:
+
+> ./plot_efficiency.py /path/to/merged/coffea/files -t 'HLT_PFHT1050' -d 'Muon.*2023.*'
 
 """
 
@@ -30,7 +33,14 @@ from matplotlib import pyplot as plt
 from coffea import hist
 from klepto.archives import dir_archive
 
-from jmecofftea.plot.style import trigger_names, binnings, markers, get_xaxis_range
+from jmecofftea.plot.style import (
+    trigger_names, 
+    binnings, 
+    markers, 
+    get_binning_for_trigger,
+    get_variable_for_trigger,
+    get_list_of_triggers
+)
 
 pjoin = os.path.join
 
@@ -38,35 +48,41 @@ Bin = hist.Bin
 
 error_opts = markers('data')
 
+
 def parse_cli():
     """Command line parser."""
     parser = argparse.ArgumentParser()
     parser.add_argument("inpath", help="Path to the merged coffea files.")
-    parser.add_argument("-t", "--triggers",  nargs='+', help="Space separated name(s) of the triggers to plot efficiency for.")
-    parser.add_argument("-v", "--variable",  help="The variable to plot efficiency for.")
+    parser.add_argument("-t", "--triggers",  help="Regular expression to match the trigger names to plot efficiency for.")
     parser.add_argument("-d", "--dataset",   help="Regular expression for the dataset name to compute efficiency with.")
     
     args = parser.parse_args()
     return args
 
 
-def plot_efficiency_for_trigger(acc, outdir, trigger, variable, dataset):
+def plot_efficiency_for_trigger(acc, outdir, trigger, dataset):
     """
     Plots the efficiency curve for the given trigger.
 
     acc:       The accumulator with the merged coffea files.
     outdir:    Output directory to save plots.
     trigger:   Name of the trigger to compute efficiency for.
-    variable:  Variable to plot efficiency as a function of.
     dataset:   Regular expression matching the dataset name to use.
     """
     print(f"Plotting efficiency for trigger: {trigger}")
+
+    # Get the variable for this trigger
+    variable = get_variable_for_trigger(trigger)
 
     acc.load(variable)
     h = acc[variable]
 
     # Get the dataset(s) we're interested in
     h = h.integrate("dataset", re.compile(dataset))
+
+    # Rebin the histogram
+    new_bins = get_binning_for_trigger(trigger)
+    h = h.rebin(new_bins.name, new_bins)
 
     # Get the numerator and denominator histograms
     h_num = h.integrate("region", f"{trigger}_num")
@@ -82,7 +98,7 @@ def plot_efficiency_for_trigger(acc, outdir, trigger, variable, dataset):
 
     # Some aesthetics
     ax.axhline(1, xmin=0, xmax=1, ls='--', color='k')
-    ax.set_ylabel("Trigger Efficiency")
+    ax.set_ylabel("HLT Efficiency")
 
     ax.text(1,1,trigger,
         fontsize=12,
@@ -91,11 +107,6 @@ def plot_efficiency_for_trigger(acc, outdir, trigger, variable, dataset):
         transform=ax.transAxes
     )
     
-    # x-axis range
-    xrange = get_xaxis_range(trigger)
-    if xrange:
-        ax.set_xlim(*xrange)
-
     # Save figure
     outpath = pjoin(outdir, f"{trigger}_eff_{variable}.pdf")
     fig.savefig(outpath)
@@ -112,13 +123,15 @@ def main():
     if not os.path.exists(outdir):
         os.makedirs(outdir)
 
-    # Plot the efficiency for each trigger provided in the CLI
-    for trigger in args.triggers:
+    # Plot the efficiency for the triggers we want
+    for trigger in get_list_of_triggers():
+        if not re.match(args.triggers, trigger):
+            continue
+
         plot_efficiency_for_trigger(
             acc, 
             outdir,
             trigger=trigger,
-            variable=args.variable,
             dataset=args.dataset,
         )
 

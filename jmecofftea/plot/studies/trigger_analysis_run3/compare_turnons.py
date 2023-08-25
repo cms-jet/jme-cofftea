@@ -166,8 +166,8 @@ def compare_turnons_for_diff_regions(acc, outdir, region_tags, base_region, data
 
     for region_tag in region_tags:
         # Get the histograms for numerator and denominator regions
-        h_num = h.integrate("region", f"{base_region}_num_{region_tag}")
-        h_den = h.integrate("region", f"{base_region}_den_{region_tag}")
+        h_num = h.integrate("region", f"{base_region}_{region_tag}_num")
+        h_den = h.integrate("region", f"{base_region}_{region_tag}_den")
 
         hist.plotratio(
             h_num,
