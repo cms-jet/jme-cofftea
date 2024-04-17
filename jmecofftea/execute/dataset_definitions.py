@@ -137,7 +137,7 @@ def find_files(directory, regex):
         files = list(filter(lambda x: x.endswith('.root'), files))
         if not len(files):
             continue
-        dataset = path.split('/')[-3]
+        dataset = path.split('/')[6]
         if not re.match(regex, dataset):
             continue
         files = [pjoin(path,x) for x in files]
@@ -190,8 +190,8 @@ def files_from_eos(regex):
 
     host = socket.gethostname()
     if 'lxplus' in host:
-        topdir = '/eos/user/a/aakpinar/nanopost'
-        tag = 'ULv8_05Feb21_withJetImages'
+        topdir = '/eos/user/t/tchatzis/CoffteaNTuples/'
+        tag = 'Muon0_Run2023Cv4'
         fileset = find_files(pjoin(topdir, tag), regex)
 
     elif 'lpc' in host:

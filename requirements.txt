@@ -1,6 +1,8 @@
 coffea==0.6.37
 mplhep==0.1.14
+matplotlib==3.2.1
 htcondor
+xxhash
 dynaconf
 PyYAML==6.0
 gitpython

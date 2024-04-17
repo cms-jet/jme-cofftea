@@ -43,7 +43,7 @@ class hltProcessor(processor.ProcessorABC):
 
         self._configure(df)
 
-        met_pt, met_phi, ak4, muons, electrons, taus, photons = setup_candidates(df, cfg)
+        met_pt, met_phi, ak4, muons = setup_candidates(df, cfg)
 
         # Re-apply offline JECs, if configured to do so
         if cfg.JECS.OFFLINE.APPLY:

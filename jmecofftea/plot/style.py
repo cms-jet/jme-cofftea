@@ -3,6 +3,26 @@ from coffea import hist
 
 Bin = hist.Bin
 
+TRIGGERS_AND_VARIABLES = {
+    # Single jet paths: Variable to use is leading jet pt
+    "HLT_PFJet60"  : "ak4_pt0",
+    "HLT_PFJet80"  : "ak4_pt0",
+    "HLT_PFJet140" : "ak4_pt0",
+    "HLT_PFJet320" : "ak4_pt0",
+    "HLT_PFJet500" : "ak4_pt0",
+    # Forward single jet paths: Use leading jet pt
+    "HLT_PFJetFwd60"  : "ak4_pt0",
+    "HLT_PFJetFwd80"  : "ak4_pt0",
+    "HLT_PFJetFwd140" : "ak4_pt0",
+    "HLT_PFJetFwd320" : "ak4_pt0",
+    # HT paths: Use offline HT
+    "HLT_PFHT180"  : "ht",
+    "HLT_PFHT350"  : "ht",
+    "HLT_PFHT510"  : "ht",
+    "HLT_PFHT780"  : "ht",
+    "HLT_PFHT1050" : "ht",
+}
+
 def markers(tag):
     if tag =='data':
         ret = {
@@ -41,6 +61,50 @@ def binnings():
         'ht' : Bin("ht", r"Offline $H_{T}$ [GeV]", list(range(0,2000,80)) + list(range(2000,3200,200))),
     }
 
+def get_variable_for_trigger(trigger):
+    """Return the variable to be used to plot the trigger efficency for a given trigger."""
+    try:
+        return TRIGGERS_AND_VARIABLES[trigger]
+    except KeyError:
+        print(f"The corresponding offline variable is not found for trigger {trigger}")
+        print(f"Please add the trigger name and the offline variable to TRIGGER_LIST mapping.")
+        raise RuntimeError(f"Offline variable not found: {trigger}")
+
+
+def get_list_of_triggers():
+    return TRIGGERS_AND_VARIABLES.keys()
+
+
+def get_binning_for_trigger(trigger):
+    """Return the binning to be used while plotting efficiency for the given trigger."""
+    # Labels for the x-axis for different axis types
+    xaxis_names = {
+        "jetpt" : r"Offline Leading Jet $p_{T}$ [GeV]",
+        "ht"    : r"Offline $H_{T}$ [GeV]",
+        "met"   : r"Offline $p_{T,no-\mu}^{miss}$ [GeV]",
+    }
+
+    mapping = {
+        # Single jet triggers
+        "HLT_PFJet60"  : Bin("jetpt", xaxis_names["jetpt"], 40, 0, 200),
+        "HLT_PFJet80"  : Bin("jetpt", xaxis_names["jetpt"], 50, 0, 250),
+        "HLT_PFJet140" : Bin("jetpt", xaxis_names["jetpt"], 80, 0, 400),
+        "HLT_PFJet320" : Bin("jetpt", xaxis_names["jetpt"], 120, 0, 600),
+        "HLT_PFJet500" : Bin("jetpt", xaxis_names["jetpt"], 100, 0, 1000),
+        # HT triggers
+        "HLT_PFHT180"  : Bin("ht",    xaxis_names["ht"], 50,  0, 500),
+        "HLT_PFHT350"  : Bin("ht",    xaxis_names["ht"], 70,  0, 700),
+        "HLT_PFHT510"  : Bin("ht",    xaxis_names["ht"], 100, 0, 1000),
+        "HLT_PFHT780"  : Bin("ht",    xaxis_names["ht"], 80,  0, 1600),
+        "HLT_PFHT1050" : Bin("ht",    xaxis_names["ht"], 100, 0, 2000),
+    }
+
+    try:
+        return mapping[trigger]
+    except KeyError:
+        raise RuntimeError(f"Could not find the binning for trigger: {trigger}")
+
+
 def trigger_labels():
     """Labels for different types of triggers."""
     return {
@@ -50,6 +114,21 @@ def trigger_labels():
         'tr_metnomu' : '$p_{T,no-\mu}^{miss} > 120 \ GeV$ \n$H_{T,no-\mu}^{miss} > 120 \ GeV$',
         'tr_metnomu_filterhf' : '$p_{T,no-\mu}^{miss} > 120 \ GeV$ \n$H_{T,no-\mu}^{miss} > 120 \ GeV$',
     }
+
+def get_xaxis_range(trigger):
+    """Get the x-axis range to use while plotting the given trigger."""
+    name_to_range = {
+        "HLT_PFJet80" : (0,400),
+        "HLT_PFJet140" : (0,400),
+    }
+    xrange = None
+    try:
+        xrange = name_to_range[trigger]
+    except KeyError:
+        pass
+    
+    return xrange
+
 
 from collections import defaultdict
 def plot_settings():
